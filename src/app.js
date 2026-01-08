@@ -3,8 +3,8 @@ const express = require("express");
 
 const app = express();
 
-app.use("/hello",(req,res)=>{
-  res.send("Hello Client!, hum server bol rahe hai")
+app.get("/",(req,res)=>{
+  res.send("Hello Client!, hum server bol rahe hai");
 });
 
 // handling the incoming request
