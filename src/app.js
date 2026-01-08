@@ -3,9 +3,8 @@ const express = require("express");
 
 const app = express();
 
-// just handling the port
-app.use("/",(req,res)=>{
-  res.send("Hello re clientwa : kaisa hai!")
+app.use("/hello",(req,res)=>{
+  res.send("Hello Client!, hum server bol rahe hai")
 });
 
 // handling the incoming request
