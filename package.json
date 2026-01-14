@@ -4,8 +4,8 @@
   "description": "a tinder for developers",
   "main": "index.js",
   "scripts": {
-    "dev" : "node ./src/app.js",
-    "start" : "nodemon ./src/app.js"
+    "dev": "node ./src/app.js",
+    "start": "nodemon ./src/app.js"
   },
   "keywords": [
     "javascript",
@@ -16,6 +16,8 @@
   "author": "Nitesh Kushwaha",
   "license": "ISC",
   "dependencies": {
-    "express": "^5.2.1"
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "mongodb": "^6.21.0"
   }
 }
