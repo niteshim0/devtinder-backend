@@ -45,11 +45,11 @@ app.get('/user',async (req,res) =>{
 })
 
 
-app.get('/users',async (req,res) =>{
+app.get('/feed',async (req,res) =>{
 
   try {
     const users = await User.find(); // no any filtering condition everyone qualifies so gives all the documents in User collection
-    if(!user){
+    if(!users){
       res.status(404).send("Users Not Found");
     }
     res.send(users);
@@ -58,12 +58,58 @@ app.get('/users',async (req,res) =>{
   }
 })
 
+app.delete('/user', async (req,res) => {
+
+  try {
+     console.log(req.body.userId);
+    const userId = req.body.userId;
+    const user = await User.findByIdAndDelete(userId);
+    
+    // user will contain deleted document(if found) , otherwise null
+
+    if(!user){
+      return res.status(404).json({ message : "User Not Found"});
+    }
+    
+    res.status(200).
+    json({ message : "User Deleted Sucessfull",
+        name : user.name                  
+    });
+    
+
+  } catch (error) {
+     // only consoling the error won't do in production otherwise   
+     // client will be stuck forever
+    // make sure to handle it gracefully and give a brief idea to the 
+    // client why he can't do certain things
+    console.error("Something went wrong:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+})
+
+
+app.patch('/user', async (req,res) => {
+  console.log(req.body);
+  try{
+     const data = req?.body;
+     const userId = req?.body?.userId;
+    //  const user = await User.findByIdAndUpdate(userId,data,
+    //   {returnDocument: "before"}); // before update version of user
+    //  console.log(user);
+     const user = await User.findByIdAndUpdate(userId,data,
+      {returnDocument: "after"}); // after update version of user
+     res.status(200).send("User updated successfully after version" ,user);
+  }catch{
+    res.status(400).send("Something went wrong!");
+  }
+})
+
 connectDB()
 .then(()=>{
   console.log("Database connection established");
   // now server should start
   app.listen(3000,()=>{
-  console.log("Server is listening")
+  console.log("Server is listening at 3000")
 });
 })
 .catch((err)=>{
