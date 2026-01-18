@@ -4,61 +4,58 @@ const { connectDB } = require('../config/database');
 
 const {User} = require('../models/user');
 
+app.use(express.json()) // middleware to convert JSON(text-format) -> JS Object(native data structure)(operations or function can be performed on data structure not on certain text format)
+
 app.post('/signup', async(req,res)=>{
-  const dummyUser = {
-  name: "Madhav Verma",
-  email: "Madhav.dev@example.com",
-  password: "hashed_password_here",
-
-  profilePhoto: "https://res.cloudinary.com/demo/image/upload/v1690000000/devtinder/user1.jpg",
-
-  bio: "Backend-focused developer who enjoys designing APIs and working with databases.",
-
-  skills: [
-    "Node.js",
-    "Express.js",
-    "MongoDB",
-    "Mongoose",
-    "REST APIs"
-  ],
-
-  experienceLevel: "Junior",
-
-  location: "Bengaluru, India",
-
-  githubUrl: "https://github.com/aarav-dev",
-  linkedinUrl: "https://linkedin.com/in/aarav-dev",
-
-  isProfileComplete: true,
-  isActive: true,
-  role: "user",
-
-  likes: [
-    "665fa123abc4567890de1111",
-    "665fa123abc4567890de2222"
-  ],
-
-  dislikes: [
-    "665fa123abc4567890de3333"
-  ],
-
-  matches: [
-    "665fa123abc4567890de4444"
-  ],
-
-  createdAt: new Date("2025-01-05T09:15:00Z"),
-  updatedAt: new Date("2025-01-14T18:20:00Z")
-};
-
-// Always do error handling while dealing with Database
+  
 try{
-  const user = new User(dummyUser);
+  
+  const user = new User(req.body); // creating an instance of User model with req.body data
+  
   await user.save();
-  return res.send("User added successfully");
+
+  return res.status(200).send(
+    {
+      success : true,
+      name : req.body.name,
+      email : req.body.email
+    }
+  )
   // In MongoDB, when we save a model instance, a document is added to a collection
 } catch(err){
   return res.status(400).send("User is not added , there is a problem of :->", err.message);
 }
+})
+
+
+// get api (finding the details of one person (finding one document in a collection))
+app.get('/user',async (req,res) =>{
+  try {
+  
+    const user = await User.find({email : req.body.email})
+    /*if no user found an empty array = [] gets returned so managing that don't use (!user) for checking that fails in javascript*/
+    if(user.length === 0){
+      res.status(404).send("User Not Found");
+    }else{
+      res.send(user); // it could be out of else such that execute this if block not executes then next line will execute
+    }
+  } catch (error) {
+    console.log("Something Went Wrong", error);
+  }
+})
+
+
+app.get('/users',async (req,res) =>{
+
+  try {
+    const users = await User.find(); // no any filtering condition everyone qualifies so gives all the documents in User collection
+    if(!user){
+      res.status(404).send("Users Not Found");
+    }
+    res.send(users);
+  } catch (error) {
+    console.log("Something Went Wrong", error);
+  }
 })
 
 connectDB()
