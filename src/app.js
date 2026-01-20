@@ -23,7 +23,7 @@ try{
   )
   // In MongoDB, when we save a model instance, a document is added to a collection
 } catch(err){
-  return res.status(400).send("User is not added , there is a problem of :->", err.message);
+  return res.status(400).send(err.message);
 }
 })
 
@@ -89,18 +89,31 @@ app.delete('/user', async (req,res) => {
 
 
 app.patch('/user', async (req,res) => {
-  console.log(req.body);
+  
   try{
-     const data = req?.body;
+     
+      const data = req?.body;
      const userId = req?.body?.userId;
+     
+     const allowedFields = [
+        "name",
+        "password",
+        "skills",
+        "experienceLevel",
+        "location"
+      ];
+
+      const isUpdateAllowed = (data,allowedFields) => 
+        Object.keys(data).every(key => allowedFields.includes(key)) ;
+      
     //  const user = await User.findByIdAndUpdate(userId,data,
     //   {returnDocument: "before"}); // before update version of user
     //  console.log(user);
      const user = await User.findByIdAndUpdate(userId,data,
-      {returnDocument: "after"}); // after update version of user
-     res.status(200).send("User updated successfully after version" ,user);
-  }catch{
-    res.status(400).send("Something went wrong!");
+      {returnDocument: "after" , runValidators : true}); // after update version of user
+     res.status(200).send("User updated successfully after version" + user);
+  }catch(error){
+    res.status(400).send("Something went wrong!" + error.message);
   }
 })
 
@@ -115,8 +128,3 @@ connectDB()
 .catch((err)=>{
   console.error('Database connection not established =>' , err.message);
 })
-
-
-
-
-

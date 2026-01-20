@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const { Schema } = require('mongoose');
 
+const validator  = require('validator');
 
 const userSchema = new Schema(
   {
@@ -15,18 +16,29 @@ const userSchema = new Schema(
     required : true,
     lowercase : true,
     trim : true,
-    unique : true
+    unique : true,
+    /* validate : {
+       validator(value){
+          return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value);
+       },
+       message : props => `${props.value} is not a valid email`
+     }  validator function provided my mongoose to custom validate certain 
+        fields in our document 
+     industry standard is to use npm validator package*/
+      validate : [validator.isEmail,"Invalid Email"] 
+      // industry standard use npm package
+
    },
    password : {
     type : String,
     required : true,
-    minLength : 10,
     select : false,
    },
 
    profilePhoto : {
     type : String,
-    default : ""
+    default : "https://www.shutterstock.com/shutterstock/photos/2470054311/display_1500/stock-vector-avatar-gender-neutral-silhouette-vector-illustration-profile-picture-no-image-for-social-media-2470054311.jpg",
+    validate : [validator.isURL,"Invalid Photo URL"]
    },
 
    bio : {
@@ -34,17 +46,29 @@ const userSchema = new Schema(
     maxLength : 300
    },
 
-   skills: [   // here we have taken array ,skills can be many and schema is decided upon the element of the array
-      {
-        type: String,
-        trim: true,
-      },
-    ],
+  skills: {
+      type: [String],
+      trim: true,
+      validate: {
+        validator: function (value) {
+            return value.length >= 2;
+        },
+      message: "At least 2 skills are required"
+    }
+  },
 
   experienceLevel: {
       type: String,
-      enum: ["Fresher", "Junior", "Mid", "Senior"], // choice to select
+      enum: {
+        values : ["Fresher", "Junior", "Mid", "Senior"],
+        message: `{VALUE} is not a valid experience level`
+       },
       default: "Fresher",
+      // validate(value) {
+      //    if(!["Fresher", "Junior", "Mid", "Senior"].includes(value)){
+      //     throw new Error(`${value} is not valid experienceLevel option`)
+      //    }
+      // } not a good approach use enum
     },
 
     location: {
@@ -53,10 +77,12 @@ const userSchema = new Schema(
 
     githubUrl: {
       type: String,
+      validate : [validator.isURL,"Invalid github URL"]
     },
 
     linkedinUrl: {
       type: String,
+      validate : [validator.isURL,"Invalid LinkedIn URL"]
     },
 
     isProfileComplete: {
