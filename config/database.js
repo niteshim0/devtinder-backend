@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const connectDB = async () => {   
-await mongoose.connect("mongodb_connection_string");
+await mongoose.connect("");
 };
 
 

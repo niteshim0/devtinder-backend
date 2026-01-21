@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const { connectDB } = require('../config/database');
+const validator = require('validator');
 
 const {User} = require('../models/user');
 
@@ -9,7 +10,15 @@ app.use(express.json()) // middleware to convert JSON(text-format) -> JS Object(
 app.post('/signup', async(req,res)=>{
   
 try{
-  
+  const data = req.body;
+  if(data.skills && data?.skills.length==0){
+        throw new Error("Without skills, people are not allowed")
+  }
+
+  if(!validator.isEmail(req.body?.email)){
+    throw new Error("Email is invalid!")
+  }
+
   const user = new User(req.body); // creating an instance of User model with req.body data
   
   await user.save();
@@ -88,34 +97,50 @@ app.delete('/user', async (req,res) => {
 })
 
 
-app.patch('/user', async (req,res) => {
-  
-  try{
-     
-      const data = req?.body;
-     const userId = req?.body?.userId;
-     
-     const allowedFields = [
-        "name",
-        "password",
-        "skills",
-        "experienceLevel",
-        "location"
-      ];
+app.patch('/user/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const data = req.body;
 
-      const isUpdateAllowed = (data,allowedFields) => 
-        Object.keys(data).every(key => allowedFields.includes(key)) ;
-      
-    //  const user = await User.findByIdAndUpdate(userId,data,
-    //   {returnDocument: "before"}); // before update version of user
-    //  console.log(user);
-     const user = await User.findByIdAndUpdate(userId,data,
-      {returnDocument: "after" , runValidators : true}); // after update version of user
-     res.status(200).send("User updated successfully after version" + user);
-  }catch(error){
-    res.status(400).send("Something went wrong!" + error.message);
+    const allowedFields = [
+      "name",
+      "password",
+      "skills",
+      "experienceLevel",
+      "location"
+    ];
+
+    const isUpdateAllowed = (data, allowedFields) =>
+      Object.keys(data).every(key => allowedFields.includes(key));
+
+    if (!isUpdateAllowed(data, allowedFields)) {
+      throw new Error("Update contains invalid fields");
+    }
+
+    if (data.skills && data.skills.length === 0) {
+      throw new Error("Without skills, people are not allowed");
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { $set: data },
+      { new: true, runValidators: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      message: "User updated successfully",
+      user
+    });
+
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
-})
+});
+
 
 connectDB()
 .then(()=>{
