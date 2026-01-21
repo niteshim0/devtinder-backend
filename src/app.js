@@ -26,7 +26,6 @@ app.post('/signup', async (req, res) => {
       linkedinUrl,
     } = req.body;
 
-    // hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = new User({
@@ -41,6 +40,7 @@ app.post('/signup', async (req, res) => {
       githubUrl,
       linkedinUrl
     });
+
 
     await user.save();
 
@@ -62,7 +62,7 @@ app.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // 1. Basic validation
+
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -70,8 +70,9 @@ app.post('/login', async (req, res) => {
       });
     }
 
-    // 2. Find user
-    const user = await User.findOne({ email });
+     const user = await User.findOne({ email }).select('+password');
+    console.log(user);
+    console.log(user.password);
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -79,16 +80,19 @@ app.post('/login', async (req, res) => {
       });
     }
 
-    // 3. Compare password
+  
     const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    console.log(isPasswordValid);
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
         message: "Invalid email or password"
       });
     }
-
-    // 4. Success
+    
+    res.cookie("token","c8f3a9e2d1b44f5c8a6e9b2f7d0a41e6a93f5c2b8e7d4a19c6f0b2e5a9d8c41")
+    
     return res.status(200).json({
       success: true,
       message: "Login successful"
