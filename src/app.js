@@ -2,39 +2,195 @@ const express = require('express');
 const app = express();
 const { connectDB } = require('../config/database');
 const validator = require('validator');
-
+const { validateSignUpData } = require('../utils/validation');
+const bcrypt = require('bcrypt');
 const {User} = require('../models/user');
 
 app.use(express.json()) // middleware to convert JSON(text-format) -> JS Object(native data structure)(operations or function can be performed on data structure not on certain text format)
 
-app.post('/signup', async(req,res)=>{
-  
-try{
-  const data = req.body;
-  if(data.skills && data?.skills.length==0){
-        throw new Error("Without skills, people are not allowed")
+app.post('/signup', async (req, res) => {
+  try {
+    // validate input
+    validateSignUpData(req);
+
+    const {
+      name,
+      email,
+      password,
+      profilePhoto,
+      bio,
+      skills,
+      experienceLevel,
+      location,
+      githubUrl,
+      linkedinUrl,
+    } = req.body;
+
+    // hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = new User({
+      name,
+      email,
+      password: hashedPassword,
+      profilePhoto,
+      bio,
+      skills,
+      experienceLevel,
+      location,
+      githubUrl,
+      linkedinUrl
+    });
+
+    await user.save();
+
+    return res.status(201).json({
+      success: true,
+      name: user.name,
+      email: user.email
+    });
+
+  } catch (err) {
+    return res.status(400).json({
+      success: false,
+      message: err.message
+    });
   }
+});
 
-  if(!validator.isEmail(req.body?.email)){
-    throw new Error("Email is invalid!")
-  }
+app.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
-  const user = new User(req.body); // creating an instance of User model with req.body data
-  
-  await user.save();
-
-  return res.status(200).send(
-    {
-      success : true,
-      name : req.body.name,
-      email : req.body.email
+    // 1. Basic validation
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required"
+      });
     }
-  )
-  // In MongoDB, when we save a model instance, a document is added to a collection
-} catch(err){
-  return res.status(400).send(err.message);
-}
-})
+
+    // 2. Find user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password"
+      });
+    }
+
+    // 3. Compare password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password"
+      });
+    }
+
+    // 4. Success
+    return res.status(200).json({
+      success: true,
+      message: "Login successful"
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
+  }
+});
+
+app.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // 1. Basic validation
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required"
+      });
+    }
+
+    // 2. Find user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password"
+      });
+    }
+
+    // 3. Compare password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password"
+      });
+    }
+
+    // 4. Success
+    return res.status(200).json({
+      success: true,
+      message: "Login successful"
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
+  }
+});
+
+app.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // 1. Basic validation
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required"
+      });
+    }
+
+    // 2. Find user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password"
+      });
+    }
+
+    // 3. Compare password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password"
+      });
+    }
+
+    // 4. Success
+    return res.status(200).json({
+      success: true,
+      message: "Login successful"
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
+  }
+});
+
+
 
 
 // get api (finding the details of one person (finding one document in a collection))
