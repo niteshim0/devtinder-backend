@@ -75,26 +75,26 @@ app.post('/login', async (req, res) => {
     }
 
     const user = await User.findOne({ email }).select('+password');
-    console.log(user);
+
     if (!user) {
       return res.status(401).json({
         success: false,
         message: "Invalid email or password"
       });
     }
+    
+    
+    const isValid = await bcrypt.compare(password, user.password);
 
-  
-    const isPasswordValid = await bcrypt.compare(password, user.password);
 
-
-    if (!isPasswordValid) {
+    if (!isValid) {
       return res.status(401).json({
         success: false,
         message: "Invalid email or password"
       });
     }
 
-   const token = jwt.sign({ _id: user._id }, "SecretJWTKEY",{ expiresIn: 60*60*24 });
+    const token = user.generateJWT();
 
     res.cookie('token',token,{ expires: new Date(Date.now() + 90000)});
   

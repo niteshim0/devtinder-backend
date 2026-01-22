@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const { Schema } = require('mongoose');
 
 const validator  = require('validator');
+const jwt = require('jsonwebtoken')
 
 const userSchema = new Schema(
   {
@@ -103,6 +104,21 @@ const userSchema = new Schema(
   },
   { timestamps: true }
 );
+
+// Query Helpers
+userSchema.methods.generateJWT = function () {
+  return jwt.sign(
+    { _id: this._id },
+    "SecretJWTKEY",
+    { expiresIn: "1d" }
+  );
+};
+
+
+userSchema.methods.passwordValidator = function (inputPassword) {
+  return bcrypt.compare(inputPassword, this.password);
+};
+
 
 
 const User = mongoose.model('User',userSchema);
