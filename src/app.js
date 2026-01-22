@@ -7,6 +7,7 @@ const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser')
 const {User} = require('../models/user');
 const jwt = require('jsonwebtoken');
+const { userAuth } = require('../middlewares/auth');
 
 app.use(express.json()) // middleware to convert JSON(text-format) -> JS Object(native data structure)(operations or function can be performed on data structure not on certain text format)
 app.use(cookieParser())
@@ -74,7 +75,7 @@ app.post('/login', async (req, res) => {
     }
 
     const user = await User.findOne({ email }).select('+password');
-    
+    console.log(user);
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -93,9 +94,9 @@ app.post('/login', async (req, res) => {
       });
     }
 
-   const token = await jwt.sign({_id : user._id},"");
+   const token = jwt.sign({ _id: user._id }, "SecretJWTKEY",{ expiresIn: 60*60*24 });
 
-    res.cookie('token',token);
+    res.cookie('token',token,{ expires: new Date(Date.now() + 90000)});
   
     return res.status(200).json({
       success: true,
@@ -110,23 +111,39 @@ app.post('/login', async (req, res) => {
   }
 });
 
-app.get('/profile', async (req,res)=>{
-  // Most of the API should be accessible only if user is logged in
-  // so this cookie thing do for all these
-  const cookies = req.cookies;
+app.get('/profile',userAuth, async (req,res)=>{
+  try {
+    const user = req.user;
+    const {name,profilePhoto,bio,skills,location} = user;
+    return res.status(200).json({
+     name,
+     profilePhoto,
+     bio,
+     skills,
+     location
+    })
 
-  const {token} = cookies;
-  
-  const decryptedMessage = await jwt.verify(token,"PrivateKeyDeveNiteshtender1989");
+  } catch (error) {
+    return res.status(404).json({
+      success : "false",
+      message : "Profile don't exist"
+    })
+  }
+})
 
-  const {_id} = decryptedMessage;
-
-  const user  = await User.findById(_id);
-
-  return res.status(200).json({
-    success : true,
-    user
-  })
+app.post('/sendConnectionRequest',userAuth,async(req,res)=>{
+  try {
+    const user = req.user;
+    return res.status(200).json({
+      success : "true",
+      message : `I ${user.name} is sending connection request to someone which is present in my feed.`,
+    })
+  } catch (error) {
+    return res.status(500).json({
+      success : "false",
+      message : "Internal Server Erorr"
+    })
+  }
 })
 
 

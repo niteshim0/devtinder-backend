@@ -1,4 +1,5 @@
-// For the time being we will  only learn about application level middleware
+const jwt = require('jsonwebtoken');
+const { User } = require('../models/user');
 
 const adminAuth = (req,res,next) => {
   const token = "abc";
@@ -11,15 +12,24 @@ const adminAuth = (req,res,next) => {
   }  
 }
 
-const userAuth = (req,res,next) => {
-  const token = "a";
-  const isTokenAuthorized = token === "abc";
+const userAuth = async (req,res,next) => {
 
-  if(!isTokenAuthorized){
-      res.status(401).send('Unauthorized Request');
-  }else{
-    next();      
-  }  
+  try {
+      const {token} = req.cookies;
+  
+      const decryptedObj = jwt.verify(token, 'SecretJWTKEY');
+      const {_id} = decryptedObj;
+
+      const user = await User.findById(_id);
+      req.user = user;
+      next();
+  } catch (error) {
+     return res.status(404).json({
+      success : "false",
+      message : "Redirect to signup page,token is now expired"
+     })
+  }
+  
 }
 
 module.exports = {adminAuth,userAuth};
