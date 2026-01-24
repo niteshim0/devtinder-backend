@@ -3,6 +3,9 @@ const authRouter = express.Router();
 const {User} = require('../models/user');
 const { validateSignUpData } = require('../utils/validation');
 const bcrypt = require('bcrypt');
+const { generateOtp, hashOtp } = require('../utils/otp');
+const { verify } = require('jsonwebtoken');
+
 
 authRouter.post('/signup', async (req, res) => {
   try {
@@ -109,8 +112,35 @@ authRouter.post('/logout', (req, res) => {
   //res.cookie("token",null,{expires : Date.now()});
   return res.status(200).json({
     success : true,
-    message : "Direct to signup or login page"
+    message : "Direct to signup or login page."
   })
 });
+
+authRouter.post('/forgotPassword',async (req,res) => {
+   const {email} = req.body;
+
+   const user = await User.findOne({email});
+
+   if(!user){
+    return res.status(200).json({
+      success : true,
+      message : "If account exists,otp sent to mail!"
+    })
+   }
+
+   const otp = generateOtp();
+
+  user.resetOtp = hashOtp(otp);
+  user.resetOtpExpiry = Date.now() + 10 * 60 * 1000; // 10 mins
+  user.otpVerified = false;
+
+  await user.save({ validateBeforeSave: false });
+
+  console.log(otp);
+
+  // next(verify-otp);
+  // next(reset-password);
+
+})
 
 module.exports = authRouter;
