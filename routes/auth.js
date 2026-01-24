@@ -103,5 +103,14 @@ authRouter.post('/login', async (req, res) => {
   }
 });
 
+authRouter.post('/logout', (req, res) => {
+  // cleanup task(I don't know for now)
+  res.clearCookie("token"); // clear the cookie or expire the token now
+  //res.cookie("token",null,{expires : Date.now()});
+  return res.status(200).json({
+    success : true,
+    message : "Direct to signup or login page"
+  })
+});
 
 module.exports = authRouter;

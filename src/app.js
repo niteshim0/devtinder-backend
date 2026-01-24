@@ -16,7 +16,7 @@ app.use(cookieParser())
 // even its very dangerous way because every router will run for "/"
 // which is not much feasible one
 app.use('/',authRouter);
-app.use('/',profileRouter);
+app.use('/profile',profileRouter);
 app.use('/',requestRouter);
 app.use('/',crudRouter);
 
