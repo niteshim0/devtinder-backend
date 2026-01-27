@@ -91,7 +91,7 @@ authRouter.post('/login', async (req, res) => {
 
     const token = user.generateJWT();
 
-    res.cookie('token',token,{ expires: new Date(Date.now() + 90000)});
+    res.cookie('token',token,{ expires: new Date(Date.now() + 900000000)});
   
     return res.status(200).json({
       success: true,

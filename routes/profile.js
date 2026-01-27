@@ -7,8 +7,9 @@ const { validateEditData } = require('../utils/validation');
 profileRouter.get('/view',userAuth, async (req,res)=>{
   try {
     const user = req.user;
-    const {name,profilePhoto,bio,skills,location} = user;
+    const {_id,name,profilePhoto,bio,skills,location} = user;
     return res.status(200).json({
+     _id,
      name,
      profilePhoto,
      bio,
