@@ -27,6 +27,12 @@ const connectionRequestSchema = new Schema(
   }
 );
 
+connectionRequestSchema.index(
+  { senderId: 1, receiverId: 1 },
+  { unique: true }
+);
+
+
 const ConnectionRequest = mongoose.model(
   "ConnectionRequest",
   connectionRequestSchema
