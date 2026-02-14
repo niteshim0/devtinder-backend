@@ -17,7 +17,7 @@ app.use(cookieParser())
 // which is not much feasible one
 app.use('/',authRouter);
 app.use('/profile',profileRouter);
-app.use('/',requestRouter);
+// app.use('/',requestRouter);
 app.use('/',crudRouter);
 
 connectDB()

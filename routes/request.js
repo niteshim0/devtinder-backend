@@ -1,25 +1,35 @@
+const express = require('express');
+const requestRouter = express.Router();
+
+const { userAuth } = require('../middlewares/auth');
+const { ConnectionRequest } = require('../models/connectionRequest');
+const { User } = require('../models/user');
+const { Match } = require('../models/match');
+
 requestRouter.post(
   "/request/send/:status/:receiverId",
   userAuth,
   async (req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
     try {
       const senderId = req.user._id;
-      const receiverId = req.params.receiverId;
-      const status = req.params.status;
+      const { receiverId, status } = req.params;
 
       const allowedStatus = ["interested", "ignored"];
 
       // 1. Validate status
       if (!allowedStatus.includes(status)) {
-        return res.status(400).json({ success: false, message: "Invalid status" });
+        return res.status(400).json({
+          success: false,
+          message: "Invalid status"
+        });
       }
 
       // 2. Self request check
       if (senderId.toString() === receiverId) {
-        return res.status(400).json({ success: false, message: "Cannot request yourself" });
+        return res.status(400).json({
+          success: false,
+          message: "Cannot request yourself"
+        });
       }
 
       // 3. Rate limit
@@ -38,7 +48,10 @@ requestRouter.post(
       // 4. Receiver existence
       const receiver = await User.findById(receiverId);
       if (!receiver) {
-        return res.status(404).json({ success: false, message: "Receiver not found" });
+        return res.status(404).json({
+          success: false,
+          message: "Receiver not found"
+        });
       }
 
       // 5. Duplicate request check
@@ -67,14 +80,11 @@ requestRouter.post(
         status === "interested"
       ) {
         reverseRequest.status = "accepted";
-        await reverseRequest.save({ session });
+        await reverseRequest.save();
 
-        await Match.create(
-          [{ users: [senderId, receiverId] }],
-          { session }
-        );
-
-        await session.commitTransaction();
+        await Match.create({
+          users: [senderId, receiverId]
+        });
 
         return res.status(201).json({
           success: true,
@@ -85,23 +95,20 @@ requestRouter.post(
       // 8. Ignored case
       if (reverseRequest && status === "ignored") {
         reverseRequest.status = "rejected";
-        await reverseRequest.save({ session });
-
-        await session.commitTransaction();
+        await reverseRequest.save();
 
         return res.status(200).json({
-          success: false,
+          success: true,
           message: "Request ignored"
         });
       }
 
       // 9. Save new request
-      await ConnectionRequest.create(
-        [{ senderId, receiverId, status }],
-        { session }
-      );
-
-      await session.commitTransaction();
+      await ConnectionRequest.create({
+        senderId,
+        receiverId,
+        status
+      });
 
       return res.status(201).json({
         success: true,
@@ -109,13 +116,75 @@ requestRouter.post(
       });
 
     } catch (err) {
-      await session.abortTransaction();
+      console.error(err);
       return res.status(500).json({
         success: false,
         message: "Internal server error"
       });
-    } finally {
-      session.endSession();
     }
   }
 );
+
+
+requestRouter.patch(
+  "/request/review/:status/:requestId",
+  userAuth,
+  async (req, res) => {
+    try {
+      const allowedStatus = ["accepted", "ignored"];
+      const { status, requestId } = req.params;
+      const loggedInUser = req.user;
+
+      if (!allowedStatus.includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid status",
+        });
+      }
+
+      const connectionReq = await ConnectionRequest.findOne({
+        senderId: requestId,
+        receiverId: loggedInUser._id,
+        status : "interested"
+      });
+
+      if (!connectionReq) {
+        return res.status(404).json({
+          success: false,
+          message: "Connection request not found",
+        });
+      }
+
+      if (!connectionReq.receiverId.equals(loggedInUser._id)) {
+        return res.status(403).json({
+          success: false,
+          message: "You are not authorized to review this request",
+        });
+      }
+
+      if (connectionReq.status !== "interested") {
+        return res.status(409).json({
+          success: false,
+          message: `Request already ${connectionReq.status}`,
+        });
+      }
+
+      connectionReq.status = status;
+      const updatedConnection = await connectionReq.save();
+
+      return res.status(200).json({
+        success: true,
+        message: `Connection request ${status}`,
+        updatedConnection,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Internal Server Error",
+      });
+    }
+  }
+);
+
+
+module.exports = { requestRouter };
