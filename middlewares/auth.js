@@ -15,6 +15,7 @@ const adminAuth = (req,res,next) => {
 const userAuth = async (req,res,next) => {
 
   try {
+
       const {token} = req.cookies;
   
       const decryptedObj = jwt.verify(token, 'SecretJWTKEY');

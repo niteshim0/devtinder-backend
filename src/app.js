@@ -7,6 +7,7 @@ const authRouter = require('../routes/auth');
 const crudRouter = require('../routes/crud');
 const profileRouter = require('../routes/profile');
 const requestRouter = require('../routes/request');
+const userRouter = require('../routes/user');
 
 
 app.use(express.json()) // middleware to convert JSON(text-format) -> JS Object(native data structure)(operations or function can be performed on data structure not on certain text format)
@@ -17,8 +18,9 @@ app.use(cookieParser())
 // which is not much feasible one
 app.use('/',authRouter);
 app.use('/profile',profileRouter);
-// app.use('/',requestRouter);
+app.use('/',requestRouter);
 app.use('/',crudRouter);
+app.use('/',userRouter);
 
 connectDB()
 .then(()=>{

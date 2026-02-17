@@ -10,8 +10,9 @@ const { verify } = require('jsonwebtoken');
 authRouter.post('/signup', async (req, res) => {
   try {
     // validate input
-    validateSignUpData(req);
 
+    validateSignUpData(req);
+     console.log(req.body.name);
     const {
       name,
       email,
@@ -39,6 +40,7 @@ authRouter.post('/signup', async (req, res) => {
       githubUrl,
       linkedinUrl
     });
+    
 
 
     await user.save();

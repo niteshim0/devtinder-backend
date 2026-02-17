@@ -11,10 +11,13 @@ requestRouter.post(
   userAuth,
   async (req, res) => {
     try {
+     
       const senderId = req.user._id;
       const { receiverId, status } = req.params;
 
       const allowedStatus = ["interested", "ignored"];
+
+
 
       // 1. Validate status
       if (!allowedStatus.includes(status)) {
@@ -28,7 +31,7 @@ requestRouter.post(
       if (senderId.toString() === receiverId) {
         return res.status(400).json({
           success: false,
-          message: "Cannot request yourself"
+          message: "Cannot request yourself,itne bhi likable ya unlikable nhi ho bhai"
         });
       }
 
@@ -53,6 +56,8 @@ requestRouter.post(
           message: "Receiver not found"
         });
       }
+
+    
 
       // 5. Duplicate request check
       const existingRequest = await ConnectionRequest.findOne({
@@ -131,7 +136,7 @@ requestRouter.patch(
   userAuth,
   async (req, res) => {
     try {
-      const allowedStatus = ["accepted", "ignored"];
+      const allowedStatus = ["accepted", "rejected"];
       const { status, requestId } = req.params;
       const loggedInUser = req.user;
 
@@ -187,4 +192,4 @@ requestRouter.patch(
 );
 
 
-module.exports = { requestRouter };
+module.exports =  requestRouter ;
