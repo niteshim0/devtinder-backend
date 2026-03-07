@@ -1,4 +1,5 @@
 const express = require('express');
+const  cors  = require('cors')
 const app = express();
 const { connectDB } = require('../config/database');
 const cookieParser = require('cookie-parser')
@@ -9,7 +10,10 @@ const profileRouter = require('../routes/profile');
 const requestRouter = require('../routes/request');
 const userRouter = require('../routes/user');
 
-
+app.use(cors({
+  origin: ["http://localhost:5173"], // allow only these origins
+  credentials: true, // allowed cookies , without this cookies can't be stored in browser because of unsecured networks origins
+}));
 app.use(express.json()) // middleware to convert JSON(text-format) -> JS Object(native data structure)(operations or function can be performed on data structure not on certain text format)
 app.use(cookieParser())
 
