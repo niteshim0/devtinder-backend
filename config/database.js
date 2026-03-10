@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const connectDB = async () => {
   try {
     await mongoose.connect(
-      "mongodb+srv://<db_username>:<db_password>@nodejsseason1.plin1zo.mongodb.net/devTinder?appName=NodeJSSeason1",
+      "mongodb+srv://<user_name>:<password>@nodejsseason1.plin1zo.mongodb.net/devTinder?appName=NodeJSSeason1",
     );
   } catch (err) {
     console.error("Database connection failed:", err.message);

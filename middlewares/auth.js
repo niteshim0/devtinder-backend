@@ -27,7 +27,7 @@ const userAuth = async (req,res,next) => {
   } catch (error) {
      return res.status(404).json({
       success : "false",
-      message : "Redirect to signup page,token is now expired"
+      message : "Redirect to signup page,token is now expired or somehow deleted"
      })
   }
   
