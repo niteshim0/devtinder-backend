@@ -1,9 +1,10 @@
 const express = require('express');
 const crudRouter = express.Router();
 const {User} = require('../models/user');
+const { userAuth } = require('../middlewares/auth');
 
 // get api (finding the details of one person (finding one document in a collection))
-crudRouter.get('/user',async (req,res) =>{
+crudRouter.get('/user',userAuth,async (req,res) =>{
   try {
   
     const user = await User.find({email : req.body.email})
@@ -19,10 +20,9 @@ crudRouter.get('/user',async (req,res) =>{
 })
 
 
-crudRouter.get('/feed',async (req,res) =>{
-
+crudRouter.get('/feed',userAuth,async (req,res) =>{
   try {
-    const users = await User.find(); // no any filtering condition everyone qualifies so gives all the documents in User collection
+    const users = await User.find({ _id: { $ne: req.user._id } });; // filtering condition because i don't want to send the loggedInUser in feed. 
     if(!users){
       res.status(404).send("Users Not Found");
     }
